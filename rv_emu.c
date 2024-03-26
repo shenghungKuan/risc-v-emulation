@@ -75,11 +75,11 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 }
 
 void emu_r_type_64(struct rv_state_st *rsp, uint32_t iw){
-	uint32_t rd = get_bits(iw, 7, 5); // (iw >> 7) & 0b11111;
-    uint32_t rs1 = get_bits(iw, 15, 5); // (iw >> 15) & 0b11111;
-    uint32_t rs2 = get_bits(iw, 20, 5); // (iw >> 20) & 0b11111;
-    uint32_t funct3 = get_bits(iw, 12, 3); // (iw >> 12) & 0b111;
-    uint32_t funct7 = get_bits(iw, 25, 7); // (iw >> 25) & 0b1111111;
+	uint32_t rd = get_bits(iw, 7, 5);
+    uint32_t rs1 = get_bits(iw, 15, 5);
+    uint32_t rs2 = get_bits(iw, 20, 5);
+    uint32_t funct3 = get_bits(iw, 12, 3);
+    uint32_t funct7 = get_bits(iw, 25, 7);
 	uint8_t shamt = (uint8_t) get_bits(rsp->regs[rs2], 0, 5);
 
    if (funct3 == 0b001 && funct7 == 0b0000000) { // sllw
@@ -93,34 +93,22 @@ void emu_r_type_64(struct rv_state_st *rsp, uint32_t iw){
 }
 
 void emu_i_type_load(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rd = get_bits(iw, 7, 5); // (iw >> 7) & 0b11111;
-    uint32_t rs1 = get_bits(iw, 15, 5); // (iw >> 15) & 0b11111;
-    uint32_t funct3 = get_bits(iw, 12, 3); // (iw >> 12) & 0b111;
+    uint32_t rd = get_bits(iw, 7, 5);
+    uint32_t rs1 = get_bits(iw, 15, 5);
+    uint32_t funct3 = get_bits(iw, 12, 3);
 
     int32_t imm32 = ((int32_t) iw) >> 20;
     int64_t imm64 = imm32;
-    // uint64_t address = imm64 + rsp->regs[rs1];
 
     if (funct3 == 0b010) { // lw
     	int *address = (int*) (imm64 + rsp->regs[rs1]);
-    	// rsp->regs[rd] = sign_extend(cache_lookup(&rsp->i_cache, (uint64_t) address), 31);
     	rsp->regs[rd] = *address;
-    	// printf("cache: %d\n", cache_lookup(&rsp->i_cache, (uint64_t) address));
-    	// printf("memory: %d\n", *address);
     } else if(funct3 == 0b000){ // lb
     	char *address = (char*) (imm64 + rsp->regs[rs1]);
-    	// rsp->regs[rd] = sign_extend(cache_lookup(&rsp->i_cache, (uint64_t) address), 31);
-    	// printf("data: %lu\n", rsp->regs[rd]);
     	rsp->regs[rd] = *address;
-    	// printf("cache: %c\n", cache_lookup(&rsp->i_cache, (uint64_t) address));
-    	// printf("memory: %c\n", *address);
     } else if(funct3 == 0b011){ // ld
     	double *address = (double*) (imm64 + rsp->regs[rs1]);
-    	// rsp->regs[rd] = sign_extend(cache_lookup(&rsp->i_cache, (uint64_t) address), 31);
-    	// printf("data: %lu\n", rsp->regs[rd]);
     	rsp->regs[rd] = *address;
-    	// printf("cache: %f\n", (int64_t) cache_lookup(&rsp->i_cache, (uint64_t) address));
-    	// printf("memory: %f\n", *address);
     } else {
     	unsupported("I-type-load funct3", funct3);
     }
@@ -128,8 +116,7 @@ void emu_i_type_load(struct rv_state_st *rsp, uint32_t iw) {
 }
 
 void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rs1 = get_bits(iw, 15, 5); // (iw >> 15) & 0b1111;  // Will be ra (aka x1)
-    // uint32_t rd = get_bits(iw, 7, 5);
+    uint32_t rs1 = get_bits(iw, 15, 5); // Will be ra (aka x1)
     uint32_t imm11_0 = get_bits(iw, 20, 12);
     int64_t offset = sign_extend(imm11_0, 11);
 
@@ -140,9 +127,9 @@ void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
 }
 
 void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rd = get_bits(iw, 7, 5); // (iw >> 7) & 0b11111;
-    uint32_t rs1 = get_bits(iw, 15, 5); // (iw >> 15) & 0b11111;
-    uint32_t funct3 = get_bits(iw, 12, 3); // (iw >> 12) & 0b111;
+    uint32_t rd = get_bits(iw, 7, 5);
+    uint32_t rs1 = get_bits(iw, 15, 5);
+    uint32_t funct3 = get_bits(iw, 12, 3);
 
     int32_t imm32 = ((int32_t) iw) >> 20;
     int64_t imm64 = imm32;
@@ -170,15 +157,12 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw){
 	if (funct3 == 0b010) { // sw
     	int *address = (int*) (offset + rsp->regs[rs1]);
     	*address = rsp->regs[rs2];
-    	// cache_lookup(&rsp->i_cache, (uint64_t) address);
     } else if(funct3 == 0b000){ //sb
     	char *address = (char*) (offset + rsp->regs[rs1]);
     	*address = rsp->regs[rs2];
-    	// cache_lookup(&rsp->i_cache, (uint64_t) address);
     } else if(funct3 == 0b011){ // sd
     	double *address = (double*) (offset + rsp->regs[rs1]);
     	*address = rsp->regs[rs2];
-    	// cache_lookup(&rsp->i_cache, (uint64_t) address);
     } else {
     	unsupported("S-type funct3", funct3);
     }
@@ -186,13 +170,13 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw){
 }
 
 void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rs1 = get_bits(iw, 15, 5); // (iw >> 15) & 0b11111;
-    uint32_t rs2 = get_bits(iw, 20, 5); // (iw >> 20) & 0b11111;
-    uint32_t funct3 = get_bits(iw, 12, 3); // (iw >> 12) & 0b111;
-    uint32_t imm12 = get_bits(iw, 31, 1) << 12; // ((iw >> 31) & 0b1) << 12;
-    uint32_t imm10_5 = get_bits(iw, 25, 6) << 5; // ((iw >> 25) & 0b111111) << 5;
-    uint32_t imm4_1 = get_bits(iw, 8, 4) << 1; // ((iw >> 8) & 0b1111) << 1;
-    uint32_t imm11 = get_bits(iw, 7, 1) << 11; // ((iw >> 7) & 0b1) << 11;
+    uint32_t rs1 = get_bits(iw, 15, 5);
+    uint32_t rs2 = get_bits(iw, 20, 5);
+    uint32_t funct3 = get_bits(iw, 12, 3);
+    uint32_t imm12 = get_bits(iw, 31, 1) << 12;
+    uint32_t imm10_5 = get_bits(iw, 25, 6) << 5;
+    uint32_t imm4_1 = get_bits(iw, 8, 4) << 1;
+    uint32_t imm11 = get_bits(iw, 7, 1) << 11;
     uint64_t temp = imm12 | imm10_5 | imm4_1 | imm11;
     int64_t offset = sign_extend(temp, 12);
 
@@ -238,14 +222,13 @@ void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 
 void emu_jal(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t rd = get_bits(iw, 7, 5);
-    uint32_t imm20 = get_bits(iw, 31, 1) << 20; // (iw >> 31) << 20;
-    uint32_t imm10_1 = get_bits(iw, 21, 10) << 1; // (iw >> 21 & 0b1111111111) << 1;
-    uint32_t imm11 = get_bits(iw, 20, 1) << 11; // (iw >> 20 & 0b1) << 11;
-    uint32_t imm19_12 = get_bits(iw, 12, 8) << 12; // (iw >> 12 & 0b11111111) << 12;
+    uint32_t imm20 = get_bits(iw, 31, 1) << 20;
+    uint32_t imm10_1 = get_bits(iw, 21, 10) << 1;
+    uint32_t imm11 = get_bits(iw, 20, 1) << 11;
+    uint32_t imm19_12 = get_bits(iw, 12, 8) << 12;
     uint64_t temp = imm20 | imm19_12 | imm11 | imm10_1;
     int64_t offset = sign_extend(temp, 20);
 
-    // if rd != 0, store pc + 4 into rsp->regs[rd]
     if(rd != 0){
     	rsp->regs[rd] = rsp->pc + 4;
     }
@@ -256,7 +239,7 @@ static void rv_one(struct rv_state_st *rsp) {
     uint32_t iw  = *((uint32_t*) rsp->pc);
     iw = cache_lookup(&rsp->i_cache, (uint64_t) rsp->pc);
 
-    uint32_t opcode = get_bits(iw, 0, 7); // iw & 0b1111111;
+    uint32_t opcode = get_bits(iw, 0, 7);
 
 #if DEBUG
     printf("iw: %08x\n", iw);
