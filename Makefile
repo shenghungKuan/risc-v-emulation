@@ -9,9 +9,10 @@ OBJS = project03.o rv_emu.o cache.o verbose.o\
 	   fib_rec_c.o fib_rec_s.o\
 	   swap_c.o swap_s.o\
 	   sort_c.o sort_s.o\
+	   bit.o\
 	   add2_c.o add2_s.o
 
-HEADERS = project03.h rv_emu.h
+HEADERS = project03.h rv_emu.h bit.h
 
 %.o: %.c $(HEADERS)
 	gcc -g -c -o $@ $<
