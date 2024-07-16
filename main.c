@@ -250,7 +250,7 @@ int parse_params(int argc, char **argv, struct rv_state_st *rsp) {
 }
 
 void usage() {
-    printf("usage: project04 <prog> [<arg1> ...]\n");
+    printf("usage: ./main [-a | -dm <cache size> <block size> | -sa <cache size> <block size>] <prog> [<arg1> ...] \n");
     exit(-1);
 }
 
